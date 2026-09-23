@@ -111,3 +111,23 @@ def test_cli_reports_design_errors(capsys):
     assert main(["design", "--length", "50", "--width", "20", "--benches-per-bay", "4"]) == 2
     assert "below the minimum" in capsys.readouterr().err
     assert main(["design", "--width", "20"]) == 2
+
+
+def test_feed_line_length_override(reference_inputs):
+    def feed_line(settings):
+        design = design_greenhouse(
+            DesignInputs(reference_inputs.greenhouse, reference_inputs.benches, settings)
+        )
+        return next(s for s in design.hydraulics.segments if s.name == "Feed line"), design
+
+    with pytest.warns(DesignWarning):
+        default, default_design = feed_line(HydraulicSettings())
+        short, short_design = feed_line(HydraulicSettings(feed_line_length_m=12.0))
+    assert default.length_m == pytest.approx(48.0 + 10.0)
+    assert short.length_m == pytest.approx(12.0)
+    assert short_design.hydraulics.total_dynamic_head_m < default_design.hydraulics.total_dynamic_head_m
+
+
+def test_negative_feed_line_length_rejected():
+    with pytest.raises(DesignError):
+        HydraulicSettings(feed_line_length_m=-1.0)

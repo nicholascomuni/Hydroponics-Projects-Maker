@@ -94,7 +94,9 @@ the published table: 0.639 for 2, 0.457 for 5, 0.402 for 10 outlets).
 
 The path to the farthest bench is modelled as three segments:
 
-1. **Feed line**: greenhouse width + 10 m at the full sector flow ($F = 1$).
+1. **Feed line**: pump to the start of the sector manifold at the full sector flow ($F = 1$). By default
+   greenhouse width + 10 m (sector on the far side of the pump house); set `feed_line_length_m` to the
+   real distance when the pump house location is known. It is usually the largest single loss.
 2. **Manifold**: greenhouse length, one outlet per lateral in the sector.
 3. **Lateral**: one bay wide, one outlet per bench.
 
@@ -191,7 +193,7 @@ are not in the code: codes and prices come from an optional catalog, the pump mo
 |---|---|
 | `Greenhouse` / `[greenhouse]` | `length_m`, `width_m`, `bay_width_m` (8), `benches_per_bay` (3), `sectors` (1), `min_aisle_width_m` (0.53) |
 | `Bench` / `[[benches]]` | `length_m`, `width_m`, `channels`, `profile` (`PS55`, `PS65`, `PS85` or a custom `ChannelProfile`), plus `count` and `crop` |
-| `HydraulicSettings` / `[hydraulics]` | pipe sizes (50/32/25 mm), `flow_per_channel_l_min` (1.5), `flow_safety_factor` (1.3), `feed_line_extra_m` (10), `bench_height_m` (1.2), `filter_head_m` (1.5), `suction_head_m` (1.5), `terrain_slope_pct` (0), `minor_loss_factor` (0.10), `hazen_williams_c` (140), `velocity_range_m_s` (0.5, 2.0) |
+| `HydraulicSettings` / `[hydraulics]` | pipe sizes (50/32/25 mm), `flow_per_channel_l_min` (1.5), `flow_safety_factor` (1.3), `feed_line_extra_m` (10), `feed_line_length_m` (unset = width + extra), `bench_height_m` (1.2), `filter_head_m` (1.5), `suction_head_m` (1.5), `terrain_slope_pct` (0), `minor_loss_factor` (0.10), `hazen_williams_c` (140), `velocity_range_m_s` (0.5, 2.0) |
 | `PumpStationSettings` / `[pump]` | `efficiency` (0.6), `model` (optional BOM label, e.g. a commercial pump name), `reservoir_volume_l` (3000) |
 
 See [`examples/greenhouse_51x48.toml`](examples/greenhouse_51x48.toml) for the file format.

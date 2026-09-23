@@ -145,7 +145,10 @@ class HydraulicSettings:
         flow_per_channel_l_min: Nutrient-solution flow per NFT channel.
         flow_safety_factor: Multiplier applied to the design flow.
         feed_line_extra_m: Pipe from the pump to the greenhouse, added to the
-            greenhouse width to get the feed-line length.
+            greenhouse width to get the default feed-line length.
+        feed_line_length_m: Actual pipe length from the pump to the start of the
+            sector manifold. When set, it replaces the conservative default of
+            greenhouse width + ``feed_line_extra_m`` (pump on the far side).
         bench_height_m: Height of the bench inlets above the pump.
         filter_head_m: Head loss across the filter.
         suction_head_m: Suction-side losses and lift.
@@ -162,6 +165,7 @@ class HydraulicSettings:
     flow_per_channel_l_min: float = 1.5
     flow_safety_factor: float = 1.3
     feed_line_extra_m: float = 10.0
+    feed_line_length_m: float | None = None
     bench_height_m: float = 1.2
     filter_head_m: float = 1.5
     suction_head_m: float = 1.5
@@ -177,6 +181,8 @@ class HydraulicSettings:
             raise DesignError("flow_per_channel_l_min must be positive")
         if self.flow_safety_factor < 1:
             raise DesignError("flow_safety_factor must be >= 1")
+        if self.feed_line_length_m is not None and self.feed_line_length_m < 0:
+            raise DesignError("feed_line_length_m must be non-negative")
         if self.minor_loss_factor < 0:
             raise DesignError("minor_loss_factor must be non-negative")
         low, high = self.velocity_range_m_s
@@ -293,8 +299,9 @@ def design_hydraulics(layout: LayoutPlan, settings: HydraulicSettings | None = N
 
     The hydraulic path from the pump to the farthest bench is modelled as:
 
-    1. **Feed line** - greenhouse width + ``feed_line_extra_m`` at the full sector
-       flow (conservative: the sector is assumed to be on the far side).
+    1. **Feed line** - ``feed_line_length_m`` at the full sector flow. By default
+       greenhouse width + ``feed_line_extra_m`` (conservative: the sector is
+       assumed to be on the far side of the pump house).
     2. **Manifold** - runs the greenhouse length and feeds one lateral per bench
        position (Christiansen factor with N = laterals per sector).
     3. **Lateral** - crosses one bay and feeds ``benches_per_bay`` benches of the
@@ -316,10 +323,13 @@ def design_hydraulics(layout: LayoutPlan, settings: HydraulicSettings | None = N
         * settings.flow_safety_factor
     )
     c = settings.hazen_williams_c
+    feed_line_m = (
+        settings.feed_line_length_m
+        if settings.feed_line_length_m is not None
+        else gh.width_m + settings.feed_line_extra_m
+    )
     segments = (
-        PipeSegment(
-            "Feed line", gh.width_m + settings.feed_line_extra_m, sector_flow, settings.main_pipe_mm, c=c
-        ),
+        PipeSegment("Feed line", feed_line_m, sector_flow, settings.main_pipe_mm, c=c),
         PipeSegment(
             "Manifold",
             gh.length_m,
