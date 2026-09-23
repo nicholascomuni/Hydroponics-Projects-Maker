@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydroponics-projects-maker"
+version = "0.2.0"
+description = "Sizing toolkit for NFT hydroponic greenhouses: bench layout, hydraulics, pump selection and bill of materials."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Nicholas Comuni" }]
+requires-python = ">=3.11"
+dependencies = ["pandas>=2.2"]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+notebook = ["ipykernel", "nbconvert"]
+
+[project.scripts]
+hydroponics = "hydroponics.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # allow ³, ², · in engineering strings and docstrings
